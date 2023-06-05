@@ -21,9 +21,9 @@ class UploadPage(FormView):
         xlsx_file = pd.ExcelFile(form.cleaned_data["xlsx_file"])
         all_sheet_names = xlsx_file.sheet_names
 
-        env = Environment(loader=FileSystemLoader(f"{BASE_DIR}/tml", encoding="utf8"))
-        model_tml = env.get_template("model.py-tml")
-        admin_tml = env.get_template("admin.py-tml")
+        env = Environment(loader=FileSystemLoader(f"{BASE_DIR}/tpl", encoding="utf8"))
+        model_tpl = env.get_template("model.py-tpl")
+        admin_tpl = env.get_template("admin.py-tpl")
 
         # Create parent dirs
         today = timezone.now().strftime("%Y%m%d")
@@ -53,13 +53,13 @@ class UploadPage(FormView):
             }
 
             # model
-            model_rendered = model_tml.render(table_info_params)
+            model_rendered = model_tpl.render(table_info_params)
             self.save_file(
                 f"{BASE_DIR}/{today}_output/{dir_name}/models.py", model_rendered
             )
 
             # admin
-            admin_rendered = admin_tml.render(table_info_params)
+            admin_rendered = admin_tpl.render(table_info_params)
             self.save_file(
                 f"{BASE_DIR}/{today}_output/{dir_name}/admin.py", admin_rendered
             )
