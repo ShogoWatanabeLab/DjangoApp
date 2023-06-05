@@ -4,7 +4,6 @@ import numpy as np
 import pandas as pd
 from jinja2 import Environment, FileSystemLoader
 
-from django.shortcuts import render, redirect
 from django.utils import timezone
 from django.http import FileResponse
 from django.views.generic import FormView
@@ -30,9 +29,8 @@ class UploadPage(FormView):
         today = timezone.now().strftime("%Y%m%d")
         self.create_dirs(f"{BASE_DIR}/{today}_output")
 
-        if "テーブル一覧" in all_sheet_names:
-            df = pd.read_excel(xlsx_file, sheet_name=all_sheet_names)
-            db_table_info = self.get_db_table_info(df.get("テーブル一覧"))
+        df = pd.read_excel(xlsx_file, sheet_name=all_sheet_names)
+        db_table_info = self.get_db_table_info(df.get("テーブル一覧"))
 
         dirs_set = self.get_dirs_set(db_table_info)
 
@@ -66,12 +64,15 @@ class UploadPage(FormView):
                 f"{BASE_DIR}/{today}_output/{dir_name}/admin.py", admin_rendered
             )
 
+        # Zip
         shutil.make_archive(
             f"{today}_output", format="zip", root_dir=f"{BASE_DIR}/{today}_output"
         )
 
+        # Remove output dir
         shutil.rmtree(f"{BASE_DIR}/{today}_output")
 
+        # Download
         return FileResponse(
             open(f"{BASE_DIR}/{today}_output.zip", "rb"),
             as_attachment=True,
