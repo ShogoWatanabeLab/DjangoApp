@@ -1,0 +1,16 @@
+from django.contrib import admin
+
+from .models import *
+
+{% for table in table_list %}
+# {{ table.logical_name }}
+class {{ table.class_name }}Admin(admin.ModelAdmin):
+    list_display = (
+        {% for field in table.field_list %}"{{ field.field_name }}",{% endfor %}
+    )
+    search_fields = ("id",)
+{% endfor %}
+
+# Django管理画面に表示する
+{% for table in table_list %}admin.site.register({{ table.class_name }}, {{ table.class_name }}Admin)
+{% endfor %}

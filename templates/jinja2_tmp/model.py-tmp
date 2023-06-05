@@ -1,0 +1,24 @@
+from django.db import models
+from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
+
+{% for dir in dirs_list %}from {{ dir }}.models import *
+{% endfor %}
+
+{% for table in table_list %}
+# {{ table.logical_name }}
+class {{ table.class_name }}(models.Model):
+    {% for field in table.field_list %}{% if field.data_type != "django_default_id" %}
+    # {{ field.domain_name }}
+    {{ field.field_name }} = models.{{ field.data_type }}(
+        {% if field.data_type == "ForeignKey" %}{{ field.foreign_class }},{% endif %}verbose_name = _("{{ field.verbose_name }}"),{% if field.on_delete %}on_delete=models.{{ field.on_delete }},{% endif %}{% if field.blank %}blank=True,{% endif %}{% if field.null %}null=True,{% endif %}{% if field.max_length %}max_length={{ field.max_length }},{% endif %}{% if field.help_text %}help_text="{{ field.help_text }}",{% endif %}{% if field.auto_now %}auto_now=True,{% endif %}{% if field.auto_now_add %}auto_now_add=True,{% endif %}{% if field.upload_to %}upload_to={{ field.upload_to }},{% endif %}{% if field.default %}default={{ field.default }},{% endif %}
+    ){% endif %}
+    {% endfor %}
+    class Meta:
+        db_table = "{{ table.dirs__table_name }}"
+        verbose_name = _("{{ table.verbose_name }}")
+        verbose_name_plural = _("{{ table.verbose_name }}")
+
+    def __str__(self):
+        return str(self.id)
+{% endfor %}
