@@ -1,0 +1,46 @@
+{
+	"name": "DjangoAutomaticallyApp",
+	// Dockerfileでイメージ・コンテナを作成
+	"dockerComposeFile": "../docker-compose.yml",
+    // デフォルトユーザをrootから切り替える
+    "remoteUser": "django",
+	// VS Codeのワークスペースフォルダ
+	"workspaceFolder": "/home/django/DjangoAutomaticallyApp",
+	// 使用するサービス
+	"service": "web",
+	// リモート先のVS Codeにインストールする拡張機能
+	"extensions": [
+		"formulahendry.auto-rename-tag",
+		"HookyQR.beautify",
+		"aaron-bond.better-comments",
+        "ms-python.black-formatter",
+		"reflectiondm.classynaming",
+		"formulahendry.code-runner",
+		"streetsidesoftware.code-spell-checker",
+		"pranaygp.vscode-css-peek",
+		"mrmlnc.vscode-csscomb",
+		"smelukov.vscode-csstree",
+        "thebarkman.vscode-djaneiro",
+		"batisteo.vscode-django",
+		"ms-azuretools.vscode-docker",
+		"mikestead.dotenv",
+		"vincaslt.highlight-matching-tag",
+		"ecmel.vscode-html-css",
+		"HTMLHint.vscode-htmlhint",
+		"oderwat.indent-rainbow",
+		"Zignd.html-css-class-completion",
+        "ms-python.isort",
+        "ms-vsliveshare.vsliveshare",
+		"ionutvmi.path-autocomplete",
+        "ms-python.vscode-pylance",
+		"ms-python.python",
+		"KevinRose.vsc-python-indent",
+		"WallabyJs.quokka-vscode",
+		"chrmarti.regex",
+		"TabNine.tabnine-vscode",
+		"wayou.vscode-todo-highlight",
+		"shardulm94.trailing-spaces",
+		"mosapride.zenkaku",
+	],
+	"shutdownAction": "stopCompose"
+}

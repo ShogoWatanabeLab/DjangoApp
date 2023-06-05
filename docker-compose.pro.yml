@@ -1,0 +1,59 @@
+version: '3'
+
+services:
+  https-portal:
+    image: steveltn/https-portal:1.17
+    container_name: ${HTTPS_PORTAL_CONTAINER_NAME}
+    env_file: ./.env
+    restart: always
+    volumes:
+      - https-portal-data:/var/lib/https-portal
+      - ./nginx/ssl_certs:/var/lib/https-portal
+      - ./nginx/conf/ruuben_web.conf.temp:/etc/nginx/conf.d/ruuben_web.conf.temp
+      - ./nginx/script/set-nginx-env:/etc/cont-init.d/set-nginx-env
+      - ./nginx/uwsgi_params:/etc/nginx/uwsgi_params
+      - ./static:/static
+      - ./media:/media
+    ports:
+      - '80:80'
+      - '443:443'
+    environment:
+      DOMAINS: ${DOMAIN_NAME} -> http://${HTTPS_PORTAL_CONTAINER_NAME}:${NGINX_WATCH_PORT}/
+      CLIENT_MAX_BODY_SIZE: 100M
+      STAGE: 'production'
+      #FORCE_RENEW: 'true'
+    depends_on:
+      - web
+
+  web:
+    build: .
+    container_name: ${WEB_CONTAINER_NAME}
+    env_file: ./.env
+    restart: always
+    tty: true
+    volumes:
+      - .:/home/ruuben/ruuben_web
+      - ./log:/tmp
+    expose:
+      - ${WEB_CONTAINER_PORT}
+    command: uwsgi --socket :${WEB_CONTAINER_PORT} --module ruuben_project.wsgi --logto /tmp/uwsgi.log
+    depends_on:
+      - db
+
+  db:
+    image: postgres:15
+    container_name: ${DB_CONTAINER_NAME}
+    restart: always
+    env_file: ./.env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    expose:
+      - ${DB_CONTAINER_PORT}
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+
+volumes:
+  postgres_data:
+  https-portal-data:
