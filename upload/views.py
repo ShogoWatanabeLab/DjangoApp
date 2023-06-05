@@ -1,5 +1,5 @@
 # imported module
-import pprint, os, re, shutil
+import os, re, shutil
 import numpy as np
 import pandas as pd
 from jinja2 import Environment, FileSystemLoader
@@ -33,8 +33,6 @@ class UploadPage(FormView):
         if "テーブル一覧" in all_sheet_names:
             df = pd.read_excel(xlsx_file, sheet_name=all_sheet_names)
             db_table_info = self.get_db_table_info(df.get("テーブル一覧"))
-
-        pprint.pprint(db_table_info)
 
         dirs_set = self.get_dirs_set(db_table_info)
 
