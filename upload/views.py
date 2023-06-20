@@ -1,9 +1,10 @@
 # imported module
-import os, re, shutil
+import os, re, shutil, zipfile
 import numpy as np
 import pandas as pd
 from jinja2 import Environment, FileSystemLoader
 
+from django.http import HttpResponse
 from django.utils import timezone
 from django.http import FileResponse
 from django.views.generic import FormView
@@ -27,7 +28,8 @@ class UploadPage(FormView):
 
         # Create parent dirs
         today = timezone.now().strftime("%Y%m%d")
-        self.create_dirs(f"{BASE_DIR}/{today}_output")
+        FULL_OUTPUT_DIR_PATH = f"{BASE_DIR}/{today}_output"
+        self.create_dirs(FULL_OUTPUT_DIR_PATH)
 
         df = pd.read_excel(xlsx_file, sheet_name=all_sheet_names)
         db_table_info = self.get_db_table_info(df.get("テーブル一覧"))
@@ -36,7 +38,7 @@ class UploadPage(FormView):
 
         for dir_name in list(dirs_set):
             # Create child dirs
-            self.create_dirs(f"{BASE_DIR}/{today}_output/{dir_name}")
+            self.create_dirs(f"{FULL_OUTPUT_DIR_PATH}/{dir_name}")
 
             # Create params
             table_info_list = []
@@ -55,29 +57,33 @@ class UploadPage(FormView):
             # model
             model_rendered = model_tpl.render(table_info_params)
             self.save_file(
-                f"{BASE_DIR}/{today}_output/{dir_name}/models.py", model_rendered
+                f"{FULL_OUTPUT_DIR_PATH}/{dir_name}/models.py", model_rendered
             )
 
             # admin
             admin_rendered = admin_tpl.render(table_info_params)
             self.save_file(
-                f"{BASE_DIR}/{today}_output/{dir_name}/admin.py", admin_rendered
+                f"{FULL_OUTPUT_DIR_PATH}/{dir_name}/admin.py", admin_rendered
             )
 
         # Zip
-        shutil.make_archive(
-            f"{today}_output", format="zip", root_dir=f"{BASE_DIR}/{today}_output"
-        )
+        response = HttpResponse(content_type="application/zip")
+        with zipfile.ZipFile(response, "w") as zip:
+            for file_path in self.get_dir_path(FULL_OUTPUT_DIR_PATH):
+                # ZIPパスからhome/~/toolまでのパスを削除
+                zip_path = file_path.replace(f"{FULL_OUTPUT_DIR_PATH}/", "")
 
-        # Remove output dir
-        shutil.rmtree(f"{BASE_DIR}/{today}_output")
+                # ZIPフォルダに書き込む
+                zip.write(file_path, zip_path)
+            zip.close()
 
         # Download
-        return FileResponse(
-            open(f"{BASE_DIR}/{today}_output.zip", "rb"),
-            as_attachment=True,
-            filename=f"{today}_output.zip",
-        )
+        response["Content-Disposition"] = 'attachment; filename="output.zip"'
+
+        # Remove output dir
+        shutil.rmtree(FULL_OUTPUT_DIR_PATH)
+
+        return response
 
     def create_dirs(self, path):
         os.makedirs(path, exist_ok=True)
@@ -156,3 +162,8 @@ class UploadPage(FormView):
     def save_file(self, path, file):
         with open(path, "w") as f:
             f.write(file)
+
+    def get_dir_path(self, root):
+        for root, dirs, files in os.walk(root):
+            for file in files:
+                yield os.path.join(root, file)
